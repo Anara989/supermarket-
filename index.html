@@ -117,11 +117,41 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         @media (max-width: 900px) {
-            .sidebar, .search-bar { display: none; }
+            .top-bar, .search-bar { display: none; }
             header { padding: 15px; }
             .layout { padding: 15px; flex-direction: column; }
             .banner { height: 200px; padding: 20px; }
             .banner h2 { font-size: 24px; }
+            
+            /* --- НОВОЕ МОБИЛЬНОЕ МЕНЮ --- */
+            .sidebar { 
+                width: 100%; 
+                margin-bottom: 10px;
+                overflow-x: auto; /* Разрешаем скролл влево-вправо */
+                -webkit-overflow-scrolling: touch;
+                padding-bottom: 5px;
+            }
+            .sidebar::-webkit-scrollbar { display: none; } /* Скрываем полосу прокрутки */
+            .sidebar ul {
+                display: flex;
+                gap: 10px;
+            }
+            .sidebar li {
+                white-space: nowrap;
+                background: var(--white);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                padding: 8px 15px;
+                margin-bottom: 0;
+                font-size: 13px;
+            }
+            .sidebar li.active {
+                background: var(--primary);
+                color: white;
+                border-color: var(--primary);
+            }
+            /* ----------------------------- */
+
             .products-grid, .recipes-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
             .card-base img { height: 120px; }
             .cart-drawer { width: 100%; right: -100%; }
