@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperMarket KG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --primary: #00b341;
+            --primary-hover: #009937;
+            --bg-main: #f7f7f9;
+            --white: #ffffff;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-dark); overflow-x: hidden; scroll-behavior: smooth; }
+
+        button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+        ul { list-style: none; }
+
+        /* Шапка */
+        header { background: var(--white); padding: 15px 40px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 90; }
+        .logo-area { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; }
+        
+        /* Наша новая кнопка языка */
+        .logo-box { 
+            background: #000; 
+            color: white; 
+            padding: 6px 12px; 
+            border-radius: 8px; 
+            font-size: 14px; 
+            cursor: pointer; 
+            transition: 0.2s;
+            user-select: none;
+        }
+        .logo-box:hover { background: var(--primary); transform: scale(1.05); }
+
+        .search-bar { flex: 1; max-width: 500px; margin: 0 40px; background: var(--bg-main); border-radius: 12px; display: flex; align-items: center; padding: 10px 15px; }
+        .search-bar input { border: none; background: transparent; outline: none; width: 100%; margin-left: 10px; font-size: 14px; }
+
+        .header-actions { display: flex; gap: 20px; align-items: center; font-size: 14px; font-weight: 500; }
+
+        .cart-btn { display: flex; align-items: center; gap: 8px; background: var(--primary); color: white; padding: 10px 20px; border-radius: 20px; font-weight: 600; transition: 0.2s; }
+        .cart-btn:hover { background: var(--primary-hover); }
+
+        /* Макет */
+        .layout { display: flex; max-width: 1400px; margin: 0 auto; padding: 20px 40px; gap: 30px; }
+        .sidebar { width: 220px; flex-shrink: 0; }
+        .sidebar li { padding: 12px 15px; margin-bottom: 5px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; transition: 0.2s; }
+        .sidebar li:hover { background: #eef2f6; }
+        .sidebar li.active { background: #e6f7ec; color: var(--primary); font-weight: 600; }
+
+        .main-content { flex: 1; }
+
+        /* Баннер */
+        .banner { background: #00bfa5 url('https://images.unsplash.com/photo-1589924691995-400dc9ecc119?auto=format&fit=crop&w=1200&q=80') center/cover; border-radius: 20px; padding: 40px; color: white; position: relative; height: 250px; display: flex; flex-direction: column; justify-content: center; margin-bottom: 30px; }
+        .banner::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,191,165,0.9) 0%, rgba(0,191,165,0.2) 100%); border-radius: 20px; }
+        .banner > * { position: relative; z-index: 1; max-width: 400px; }
+        .banner h2 { font-size: 32px; margin-bottom: 10px; }
+        .banner button { background: var(--primary); color: white; padding: 12px 25px; border-radius: 8px; font-weight: 600; font-size: 16px; margin-top: 15px; }
+
+        /* Сетки (Товары и Рецепты) */
+        .section-title { font-size: 22px; font-weight: 700; margin: 20px 0; }
+        .products-grid, .recipes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        
+        .card-base { background: var(--white); border-radius: 16px; padding: 15px; display: flex; flex-direction: column; position: relative; transition: 0.2s; animation: fadeIn 0.4s ease; }
+        .card-base:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+        .card-base img { width: 100%; height: 150px; object-fit: cover; border-radius: 12px; margin-bottom: 15px; }
+        
+        .product-title { font-size: 15px; font-weight: 600; margin-bottom: 5px; line-height: 1.3; }
+        .product-price { font-size: 18px; font-weight: 700; margin-top: auto; }
+        .btn-add { background: var(--primary); color: white; width: 35px; height: 35px; border-radius: 8px; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+
+        /* Карточка рецепта */
+        .recipe-card { cursor: pointer; }
+        .recipe-card .btn-recipe { background: #eef2f6; color: var(--text-dark); padding: 10px; border-radius: 8px; font-weight: 600; text-align: center; margin-top: 10px; }
+
+        /* Модальное окно рецепта */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 1000; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box { background: var(--white); width: 90%; max-width: 500px; border-radius: 20px; padding: 30px; position: relative; transform: scale(0.9); transition: 0.3s; max-height: 90vh; overflow-y: auto; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .btn-close-modal { position: absolute; top: 15px; right: 15px; font-size: 24px; color: var(--text-gray); background: none; }
+        
+        .ingredients-list { margin: 20px 0; }
+        .ingredient-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .ingredient-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; }
+        .ingredient-info { flex: 1; margin-left: 15px; display: flex; flex-direction: column; }
+        .ingredient-name { font-weight: 500; font-size: 14px; }
+        .ingredient-price { font-size: 12px; color: var(--text-gray); }
+        .btn-add-recipe { width: 100%; background: var(--primary); color: white; padding: 15px; border-radius: 12px; font-weight: 600; font-size: 16px; margin-top: 10px; }
+
+        /* Корзины */
+        .floating-cart { position: fixed; bottom: 30px; right: 30px; background: var(--primary); color: white; padding: 15px 25px; border-radius: 30px; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 25px rgba(0,179,65,0.4); cursor: pointer; transform: translateY(100px); opacity: 0; transition: 0.3s; z-index: 95; font-weight: 600; font-size: 16px; }
+        .floating-cart.show { transform: translateY(0); opacity: 1; }
+
+        .cart-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; }
+        .cart-overlay.active { opacity: 1; visibility: visible; }
+        .cart-drawer { position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; background: var(--white); z-index: 101; display: flex; flex-direction: column; transition: right 0.3s ease; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
+        .cart-drawer.active { right: 0; }
+        .cart-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .cart-body { flex: 1; overflow-y: auto; padding: 20px; }
+        .cart-item { display: flex; align-items: center; margin-bottom: 20px; gap: 15px; }
+        .cart-item img { width: 60px; height: 60px; object-fit: contain; background: var(--bg-main); border-radius: 8px; padding: 5px; }
+        .cart-item-title { font-size: 14px; font-weight: 500; }
+        .qty-controls { display: flex; align-items: center; gap: 10px; background: var(--bg-main); border-radius: 8px; padding: 5px; }
+        .qty-btn { background: var(--white); border: 1px solid var(--border); width: 28px; height: 28px; border-radius: 6px; font-weight: bold; }
+        .cart-footer { padding: 20px; border-top: 1px solid var(--border); }
+        .cart-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 700; margin-bottom: 15px; }
+        .btn-checkout { width: 100%; background: var(--primary); color: white; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: 600; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 900px) {
+            .sidebar, .search-bar { display: none; }
+            header { padding: 15px; }
+            .layout { padding: 15px; flex-direction: column; }
+            .banner { height: 200px; padding: 20px; }
+            .banner h2 { font-size: 24px; }
+            .products-grid, .recipes-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+            .card-base img { height: 120px; }
+            .cart-drawer { width: 100%; right: -100%; }
+            .floating-cart { bottom: 20px; right: 20px; padding: 12px 20px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <!-- Кнопка языка вместо логотипа. ID нужен для смены текста -->
+            <div class="logo-box" id="lang-toggle" onclick="toggleLanguage()" title="Сменить язык / Тилди өзгөртүү">KG</div>
+            SuperMarket
+        </div>
+        <div class="search-bar">
+            <span>🔍</span>
+            <input type="text" placeholder="Найти продукты...">
+        </div>
+        <div class="header-actions">
+            <div class="cart-btn" onclick="toggleCart()">
+                <span data-i18n="cart">Корзина</span> 
+                <span id="cart-count" style="background: white; color: var(--primary); border-radius: 50%; padding: 2px 8px; font-size: 12px;">0</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <ul>
+                <li class="active" id="nav-home" onclick="switchTab('home', this)">
+                    <span data-i18n="nav_home">🏠 Все продукты</span>
+                </li>
+                <li id="nav-recipes" onclick="switchTab('recipes', this)">
+                    <span data-i18n="nav_recipes">🍳 Рецепты</span>
+                </li>
+                <li onclick="filterCategory('dairy', this)">
+                    <span data-i18n="cat_dairy">🥛 Молочные продукты</span>
+                </li>
+                <li onclick="filterCategory('meat', this)">
+                    <span data-i18n="cat_meat">🥩 Мясо</span>
+                </li>
+                <li onclick="filterCategory('veg', this)">
+                    <span data-i18n="cat_veg">🍏 Овощи и фрукты</span>
+                </li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <!-- ЭКРАН 1: ТОВАРЫ -->
+            <div id="view-home">
+                <div class="banner">
+                    <h2 data-i18n="banner_title">Свежие продукты</h2>
+                    <p data-i18n="banner_text">Натуральные продукты от местных фермеров. Доставка от 30 минут.</p>
+                    <button onclick="scrollToProducts()" data-i18n="btn_promo">Смотреть акции</button>
+                </div>
+
+                <h2 class="section-title" id="grid-title" data-i18n="all_products">Все продукты</h2>
+                <div class="products-grid" id="products-grid"></div>
+            </div>
+
+            <!-- ЭКРАН 2: РЕЦЕПТЫ -->
+            <div id="view-recipes" style="display: none;">
+                <h2 class="section-title" data-i18n="recipes_title">Готовим вместе</h2>
+                <div class="recipes-grid" id="recipes-grid"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно рецепта -->
+    <div class="modal-overlay" id="recipe-modal">
+        <div class="modal-box">
+            <button class="btn-close-modal" onclick="closeRecipe()">×</button>
+            <img id="modal-img" src="" style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px;">
+            <h2 id="modal-title" style="margin-top: 15px;"></h2>
+            <p style="color: gray; font-size: 14px;" id="modal-desc"></p>
+            
+            <h3 style="margin-top: 20px; font-size: 16px;" data-i18n="ingredients_title">Ингредиенты:</h3>
+            <div class="ingredients-list" id="modal-ingredients"></div>
+            
+            <button class="btn-add-recipe" id="btn-add-recipe" onclick="addSelectedIngredients()" data-i18n="btn_add_recipe">Добавить в корзину</button>
+        </div>
+    </div>
+
+    <!-- Корзины -->
+    <div class="floating-cart" id="floating-cart" onclick="toggleCart()">
+        🛒 <span id="float-count">0</span> • <span id="float-total">0 сом</span>
+    </div>
+
+    <div class="cart-overlay" id="cart-overlay" onclick="toggleCart()"></div>
+    <div class="cart-drawer" id="cart-drawer">
+        <div class="cart-header">
+            <h2 data-i18n="cart">Корзина</h2>
+            <button class="btn-close" onclick="toggleCart()">×</button>
+        </div>
+        <div class="cart-body" id="cart-body"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span data-i18n="total">Итого:</span>
+                <span id="cart-total">0 сом</span>
+            </div>
+            <button class="btn-checkout" onclick="checkout()" data-i18n="checkout">Оформить заказ</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. СЛОВАРИ ---
+        const tUI = {
+            ru: { nav_home: "🏠 Все продукты", nav_recipes: "🍳 Рецепты", cat_dairy: "🥛 Молочные", cat_meat: "🥩 Мясо", cat_veg: "🍏 Овощи", banner_title: "Свежие продукты", banner_text: "Натуральные продукты от местных фермеров.", btn_promo: "Смотреть акции", all_products: "Все продукты", recipes_title: "Готовим вместе", ingredients_title: "Ингредиенты (снимите галочки, если они у вас есть):", btn_add_recipe: "Добавить выбранное в корзину", cart: "Корзина", total: "Итого:", checkout: "Оформить заказ", empty_cart: "Корзина пуста", recipe_btn: "Смотреть рецепт" },
+            kg: { nav_home: "🏠 Бардык продуктылар", nav_recipes: "🍳 Рецепттер", cat_dairy: "🥛 Сүт азыктары", cat_meat: "🥩 Эт", cat_veg: "🍏 Жашылчалар", banner_title: "Жаңы продуктылар", banner_text: "Жергиликтүү дыйкандардан табигый азыктар.", btn_promo: "Акцияларды көрүү", all_products: "Бардык азыктар", recipes_title: "Чогуу тамак жасайбыз", ingredients_title: "Ингредиенттер (бар болсо, белгини алып салыңыз):", btn_add_recipe: "Тандалгандарды себетке кошуу", cart: "Себет", total: "Жалпы:", checkout: "Заказ кылуу", empty_cart: "Себет бош", recipe_btn: "Рецептти көрүү" },
+            en: { nav_home: "🏠 All Products", nav_recipes: "🍳 Recipes", cat_dairy: "🥛 Dairy", cat_meat: "🥩 Meat", cat_veg: "🍏 Vegetables", banner_title: "Fresh Products", banner_text: "Natural products from local farmers.", btn_promo: "View Promos", all_products: "All Products", recipes_title: "Cook Together", ingredients_title: "Ingredients (uncheck if you have them):", btn_add_recipe: "Add to Cart", cart: "Cart", total: "Total:", checkout: "Checkout", empty_cart: "Cart is empty", recipe_btn: "View Recipe" }
+        };
+
+        const langs = ['kg', 'ru', 'en']; // Порядок переключения
+        let currentLangIndex = 0; // Начинаем с KG
+        let currentLang = langs[currentLangIndex];
+        
+        let currentCategory = 'all';
+        let currentView = 'home';
+
+        // --- 2. БАЗА ДАННЫХ (С ПЕРЕВОДАМИ) ---
+        const products = [
+            { id: 1, category: 'dairy', price: 85, img: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300&q=80', name: { ru: 'Молоко "Ак-Сут"', kg: '"Ак-Сут" сүтү', en: 'Milk "Ak-Sut"' } },
+            { id: 2, category: 'bakery', price: 120, img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=300&q=80', name: { ru: 'Боорсоки', kg: 'Боорсок', en: 'Boorsok' } },
+            { id: 3, category: 'drinks', price: 45, img: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=300&q=80', name: { ru: 'Вода "Ала-Тоо"', kg: '"Ала-Тоо" суусу', en: 'Water "Ala-Too"' } },
+            { id: 4, category: 'meat', price: 550, img: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=300&q=80', name: { ru: 'Говядина', kg: 'Уй эти', en: 'Beef' } },
+            { id: 5, category: 'grocery', price: 130, img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&q=80', name: { ru: 'Рис (Лазер)', kg: 'Күрүч (Лазер)', en: 'Rice (Laser)' } },
+            { id: 6, category: 'veg', price: 40, img: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=300&q=80', name: { ru: 'Морковь', kg: 'Сабиз', en: 'Carrot' } },
+            { id: 7, category: 'veg', price: 30, img: 'https://images.unsplash.com/photo-1508747703725-719777637510?w=300&q=80', name: { ru: 'Лук репчатый', kg: 'Пияз', en: 'Onion' } },
+            { id: 8, category: 'grocery', price: 60, img: 'https://images.unsplash.com/photo-1626027543654-501c24cec7f1?w=300&q=80', name: { ru: 'Мука', kg: 'Ун', en: 'Flour' } }
+        ];
+
+        const recipes = [
+            { id: 'r1', img: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=500&q=80', ingredients: [4, 5, 6, 7], name: { ru: 'Ош (Плов)', kg: 'Ош', en: 'Osh (Pilaf)' }, desc: { ru: 'Традиционное блюдо из мяса и риса.', kg: 'Эт жана күрүчтөн жасалган салттуу тамак.', en: 'Traditional meat and rice dish.' } },
+            { id: 'r2', img: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500&q=80', ingredients: [8, 1], name: { ru: 'Боорсоки', kg: 'Боорсок', en: 'Boorsok' }, desc: { ru: 'Сдобные кусочки теста.', kg: 'Майга куурулган камыр.', en: 'Fried dough pieces.' } }
+        ];
+
+        let cart = {};
+        let activeRecipe = null;
+
+        // --- 3. ЛОГИКА ПЕРЕВОДА ---
+        function t(obj) {
+            if (!obj) return "";
+            return obj[currentLang] || obj['ru'];
+        }
+
+        // Новая функция переключения языка по клику на логотип
+        function toggleLanguage() {
+            currentLangIndex = (currentLangIndex + 1) % langs.length;
+            currentLang = langs[currentLangIndex];
+            
+            // Меняем текст на самой кнопке (KG, RU, EN)
+            document.getElementById('lang-toggle').innerText = currentLang.toUpperCase();
+
+            // 1. Переводим статические элементы
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(tUI[currentLang][key]) el.innerText = tUI[currentLang][key];
+            });
+
+            // 2. Перерисовываем контент
+            if (currentView === 'home') {
+                renderProducts();
+            } else {
+                renderRecipes();
+            }
+            
+            // 3. Обновляем открытый рецепт
+            if (activeRecipe) {
+                openRecipe(activeRecipe.id);
+            }
+
+            // 4. Обновляем корзину
+            updateCartUI();
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            const title = document.getElementById('grid-title');
+            
+            title.innerText = tUI[currentLang].all_products;
+            const filtered = currentCategory === 'all' ? products : products.filter(p => p.category === currentCategory);
+
+            grid.innerHTML = filtered.map(p => `
+                <div class="card-base">
+                    <img src="${p.img}">
+                    <div class="product-title">${t(p.name)}</div>
+                    <div class="product-price">${p.price} сом</div>
+                    <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+                        <button class="btn-add" onclick="addToCart(${p.id}, 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRecipes() {
+            const grid = document.getElementById('recipes-grid');
+            grid.innerHTML = recipes.map(r => `
+                <div class="card-base recipe-card" onclick="openRecipe('${r.id}')">
+                    <img src="${r.img}">
+                    <div class="product-title" style="font-size:16px;">${t(r.name)}</div>
+                    <div style="font-size:12px; color:gray; margin-bottom:10px;">${t(r.desc)}</div>
+                    <div class="btn-recipe">${tUI[currentLang].recipe_btn}</div>
+                </div>
+            `).join('');
+        }
+
+        // --- 4. НАВИГАЦИЯ ---
+        function switchTab(tab, el) {
+            document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
+            el.classList.add('active');
+            currentView = tab;
+            
+            if(tab === 'home') {
+                currentCategory = 'all';
+                document.getElementById('view-home').style.display = 'block';
+                document.getElementById('view-recipes').style.display = 'none';
+                renderProducts();
+            } else {
+                document.getElementById('view-home').style.display = 'none';
+                document.getElementById('view-recipes').style.display = 'block';
+                renderRecipes();
+            }
+        }
+
+        function filterCategory(cat, el) {
+            document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
+            el.classList.add('active');
+            
+            currentView = 'home';
+            currentCategory = cat;
+            
+            document.getElementById('view-home').style.display = 'block';
+            document.getElementById('view-recipes').style.display = 'none';
+            renderProducts();
+        }
+
+        function scrollToProducts() {
+            document.getElementById('products-grid').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // --- 5. РЕЦЕПТЫ ---
+        function openRecipe(id) {
+            activeRecipe = recipes.find(r => r.id === id);
+            document.getElementById('modal-title').innerText = t(activeRecipe.name);
+            document.getElementById('modal-desc').innerText = t(activeRecipe.desc);
+            document.getElementById('modal-img').src = activeRecipe.img;
+
+            const list = document.getElementById('modal-ingredients');
+            list.innerHTML = activeRecipe.ingredients.map(prodId => {
+                const prod = products.find(p => p.id === prodId);
+                return `
+                    <div class="ingredient-item">
+                        <input type="checkbox" id="ing_${prod.id}" value="${prod.id}" checked>
+                        <div class="ingredient-info">
+                            <span class="ingredient-name">${t(prod.name)}</span>
+                            <span class="ingredient-price">${prod.price} сом</span>
+                        </div>
+                        <img src="${prod.img}" style="width:40px; height:40px; border-radius:8px; object-fit:cover;">
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('recipe-modal').classList.add('active');
+        }
+
+        function closeRecipe() {
+            document.getElementById('recipe-modal').classList.remove('active');
+            activeRecipe = null;
+        }
+
+        function addSelectedIngredients() {
+            const checkboxes = document.querySelectorAll('#modal-ingredients input[type="checkbox"]:checked');
+            if(checkboxes.length === 0) return;
+
+            checkboxes.forEach(cb => {
+                addToCart(parseInt(cb.value), 1);
+            });
+            closeRecipe();
+            if(!document.getElementById('cart-drawer').classList.contains('active')) toggleCart();
+        }
+
+        // --- 6. КОРЗИНА ---
+        function addToCart(id, qty) {
+            if (cart[id]) { cart[id] += qty; } else { cart[id] = qty; }
+            updateCartUI();
+            const cartBtn = document.querySelector('.cart-btn');
+            cartBtn.style.transform = 'scale(1.1)';
+            setTimeout(() => cartBtn.style.transform = 'scale(1)', 200);
+        }
+
+        function changeQty(id, delta) {
+            if (!cart[id]) return;
+            cart[id] += delta;
+            if (cart[id] <= 0) { delete cart[id]; }
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartBody = document.getElementById('cart-body');
+            const cartTotal = document.getElementById('cart-total');
+            const floatingCart = document.getElementById('floating-cart');
+            let totalItems = 0, totalPrice = 0, html = '';
+
+            for (const id in cart) {
+                const prod = products.find(p => p.id == id);
+                const qty = cart[id];
+                totalItems += qty;
+                totalPrice += prod.price * qty;
+                html += `
+                    <div class="cart-item">
+                        <img src="${prod.img}">
+                        <div class="cart-item-info" style="flex:1;">
+                            <div class="cart-item-title">${t(prod.name)}</div>
+                            <div style="font-weight:700; color:var(--primary); font-size:14px;">${prod.price * qty} сом</div>
+                        </div>
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="changeQty(${id}, -1)">-</button>
+                            <span style="font-weight:600; font-size:14px;">${qty}</span>
+                            <button class="qty-btn" onclick="changeQty(${id}, 1)">+</button>
+                        </div>
+                    </div>`;
+            }
+
+            if (totalItems === 0) {
+                cartBody.innerHTML = `<p style="text-align:center; color:gray; margin-top:50px;">${tUI[currentLang].empty_cart}</p>`;
+                floatingCart.classList.remove('show');
+            } else {
+                cartBody.innerHTML = html;
+                floatingCart.classList.add('show');
+                document.getElementById('float-count').innerText = totalItems;
+                document.getElementById('float-total').innerText = totalPrice + ' сом';
+            }
+            document.getElementById('cart-count').innerText = totalItems;
+            cartTotal.innerText = totalPrice + ' сом';
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-drawer').classList.toggle('active');
+            document.getElementById('cart-overlay').classList.toggle('active');
+        }
+
+        function checkout() {
+            if (Object.keys(cart).length === 0) return;
+            alert(`Заказ оформлен! / Order placed! / Заказ кабыл алынды!`);
+            cart = {};
+            updateCartUI();
+            toggleCart();
+        }
+
+        // Старт (сразу переводим на KG, так как кнопка показывает KG)
+        toggleLanguage(); // Вызовет перевод и сделает KG активным
+    </script>
+</body>
+</html>
